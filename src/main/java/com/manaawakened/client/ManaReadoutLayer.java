@@ -133,7 +133,7 @@ public final class ManaReadoutLayer {
     private static void drawTitle(GuiGraphics graphics, Font font, ManaData data, int x, int y, float time, int variant, int right, long now) {
         int end = graphics.drawString(font, ManaHudText.title(variant).text, x, y, circleColor(data.circle(), time), true);
         int amountEnd = graphics.drawString(font, ManaHudText.AMOUNT.text, end + ManaHudText.PART_GAP, y, TEXT_MANA, true);
-        if (!data.isTranscendent()) {
+        if (!data.hasInfiniteMana()) {
             SpendFeedbackHud.drain(graphics, font, amountEnd + 4, y, now);
             SpendFeedbackHud.number(graphics, font, amountEnd + 4 + ManaHudText.DRAIN_ROOM, y, right, y, now);
         }
@@ -148,25 +148,25 @@ public final class ManaReadoutLayer {
         int filled = Mth.clamp((int) Math.round(data.manaFraction() * BAR_WIDTH), 0, BAR_WIDTH);
         if (filled > 0) {
             if (data.isTranscendent() && CalmHue.calm()) {
-                // Circle 10, calm (4.0.0): one drifting hue with a faint lighter sheen moving along the bar
-                graphics.fill(x, y, x + BAR_WIDTH, y + BAR_HEIGHT, CalmHue.rgb(time, 0.55F, 1.0F));
+                // Circle 10, calm (4.0.0): one drifting hue with a faint lighter sheen moving along the bar (only its filled part, 1.0.4)
+                graphics.fill(x, y, x + filled, y + BAR_HEIGHT, CalmHue.rgb(time, 0.55F, 1.0F));
                 int at = (int) ((time * 0.6F) % (BAR_WIDTH + SHEEN_WIDTH)) - SHEEN_WIDTH;
                 int left = Math.max(x, x + at);
-                int right = Math.min(x + BAR_WIDTH, x + at + SHEEN_WIDTH);
+                int right = Math.min(x + filled, x + at + SHEEN_WIDTH);
                 if (right > left) {
                     graphics.fill(left, y, right, y + BAR_HEIGHT, 0x60FFFFFF);
                 }
             } else if (data.isTranscendent()) {
                 // Circle 10, classic: the bar becomes a slow prismatic flow.
-                for (int i = 0; i < BAR_WIDTH; i += 4) {
+                for (int i = 0; i < filled; i += 4) {
                     int rgb = Mth.hsvToRgb(((time * 0.01F) + i / (float) BAR_WIDTH) % 1.0F, 0.55F, 1.0F);
-                    graphics.fill(x + i, y, Math.min(x + i + 4, x + BAR_WIDTH), y + BAR_HEIGHT, 0xFF000000 | rgb);
+                    graphics.fill(x + i, y, Math.min(x + i + 4, x + filled), y + BAR_HEIGHT, 0xFF000000 | rgb);
                 }
             } else {
                 graphics.fillGradient(x, y, x + filled, y + BAR_HEIGHT, MANA_TOP, MANA_BOTTOM);
             }
         }
-        if (!data.isTranscendent()) {
+        if (!data.hasInfiniteMana()) {
             SpendFeedbackHud.ghostBar(graphics, x, y, BAR_WIDTH, BAR_HEIGHT, filled / (float) BAR_WIDTH, now);
         }
         if (charging) {

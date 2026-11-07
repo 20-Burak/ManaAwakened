@@ -97,7 +97,7 @@ public final class ManaHudText {
             TITLE.set(Component.translatable("mana_awakened.hud.circle", CircleTier.roman(circle), Component.translatable(CircleTier.titleKey(circle))), font);
             TITLE_SHORT.set(Component.literal(CircleTier.roman(circle)), font);
         }
-        long mana = data.isTranscendent() ? -1L : (long) Math.floor(data.mana());
+        long mana = data.hasInfiniteMana() ? -1L : (long) Math.floor(data.mana());
         long max = (long) Math.floor(data.maxMana());
         if (AMOUNT.stale(mana * 31L + max)) {
             AMOUNT.set(HudNumbers.amount(data), font);

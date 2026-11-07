@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ManaData {
     /** Bump when the stored layout changes and migrate old values in {@link #fromStorage}. */
-    public static final int DATA_VERSION = 8; // v2 (1.1.0): core_capacity, v3 (1.2.0): refinements (and the remembered health, which is optional in every version), v4 (2.2.0): foundation, v5 (3.2.0): fullness + perfect_clears replace foundation, v6 (3.2.1): fullness is measured against the Circle's ceiling, v7 (3.3.0): purity is derived (no longer stored), unearned perfect clears dropped, legacy_second_picks, v8 (1.0.1): the personal threshold
+    public static final int DATA_VERSION = 9; // v9 (1.0.4): infinite_mana (missing reads true), v2 (1.1.0): core_capacity, v3 (1.2.0): refinements (and the remembered health, which is optional in every version), v4 (2.2.0): foundation, v5 (3.2.0): fullness + perfect_clears replace foundation, v6 (3.2.1): fullness is measured against the Circle's ceiling, v7 (3.3.0): purity is derived (no longer stored), unearned perfect clears dropped, legacy_second_picks, v8 (1.0.1): the personal threshold
     /** First format of the 3.2.0 core-training model; older saves are migrated in {@link #fromStorage}. */
     private static final int FULLNESS_VERSION = 5;
     /** First format whose fullness is measured from the threshold to the Circle's own ceiling (3.2.1); format 5 measured it against the threshold. */
@@ -83,7 +83,10 @@ public final class ManaData {
             Codec.INT.lenientOptionalFieldOf("legacy_second_picks", 0).forGetter(ManaData::legacySecondPicks),
             // The personal threshold of the current Circle (1.0.1): five times the core the last breakthrough was made with. Optional with
             // no default: older saves and a damaged value get the threshold their fullness history leads to.
-            Codec.DOUBLE.lenientOptionalFieldOf("threshold").forGetter(data -> Optional.of(data.threshold))
+            Codec.DOUBLE.lenientOptionalFieldOf("threshold").forGetter(data -> Optional.of(data.threshold)),
+            // The world's last answer whether Circle 10 has infinite mana (1.0.4). A save without it reads true, so the first login into a
+            // world where it is off fills a Circle 10 core once; afterwards the saved false keeps a relog from filling it again.
+            Codec.BOOL.lenientOptionalFieldOf("infinite_mana", true).forGetter(ManaData::infiniteManaAllowed)
     ).apply(instance, ManaData::fromStorage));
 
     /**
@@ -162,6 +165,12 @@ public final class ManaData {
      * until there is room (3.8.0). Session only, never saved; synced so the pose and the camera stay down too.
      */
     private boolean seatedUntilRoom;
+    /**
+     * Whether this world lets Circle 10 have infinite mana (1.0.4: the server config and the gamerule, see {@link InfiniteMana}). The
+     * server sets it, the client mirrors it, the save keeps it (format 9). It starts true, so the first login into a world where it is
+     * off fills a Circle 10 core once.
+     */
+    private boolean infiniteMana = true;
     /** Server only: where the body sat down. Meditation breaks when the body is moved from here (session only, never saved). */
     private boolean anchored;
     private double anchorX;
@@ -228,7 +237,7 @@ public final class ManaData {
     private static ManaData fromStorage(Optional<Integer> storedVersion, int circle, double mana, double bodyHeat, int vesselTier, int fractureTicks,
                                         Optional<Double> storedCapacity, Optional<List<String>> storedRefinements, Optional<Float> storedHealth,
                                         Optional<Double> storedFoundation, Optional<List<Float>> storedFullness, int storedPerfectClears,
-                                        int storedLegacySecondPicks, Optional<Double> storedThreshold) {
+                                        int storedLegacySecondPicks, Optional<Double> storedThreshold, boolean storedInfiniteMana) {
         int version = storedVersion.orElse(LEGACY_VERSION);
         if (version > DATA_VERSION) {
             ManaAwakened.LOGGER.warn("Mana data was saved by a newer Mana Awakened (format {} > {}); reading what this version understands.", version, DATA_VERSION);
@@ -283,6 +292,7 @@ public final class ManaData {
         }
         data.refreshPurity();
         data.setLastHealth(storedHealth.orElse(NO_HEALTH));
+        data.infiniteMana = storedInfiniteMana;
         return data;
     }
 
@@ -503,6 +513,23 @@ public final class ManaData {
         return CircleTier.isTranscendent(circle);
     }
 
+    /** Circle 10 in a world that allows infinite mana: nothing is ever paid and the core always reads as full. */
+    public boolean hasInfiniteMana() {
+        return isTranscendent() && infiniteMana;
+    }
+
+    /** The world's answer whatever the Circle (what the server last set, see {@link InfiniteMana#refresh}). */
+    public boolean infiniteManaAllowed() {
+        return infiniteMana;
+    }
+
+    public void setInfiniteMana(boolean allowed) {
+        if (infiniteMana != allowed) {
+            infiniteMana = allowed;
+            dirty = true;
+        }
+    }
+
     public boolean has(Refinement refinement) {
         return (refinementMask & refinement.bit()) != 0;
     }
@@ -525,11 +552,11 @@ public final class ManaData {
 
     public boolean isManaFull() {
         // A hair of tolerance (a thousandth, or one point): rounding in other mods' mana pools must not keep a full core from a breakthrough.
-        return isTranscendent() || mana >= maxMana - Math.max(FULL_EPSILON, Math.min(1.0, maxMana * 1.0E-3));
+        return hasInfiniteMana() || mana >= maxMana - Math.max(FULL_EPSILON, Math.min(1.0, maxMana * 1.0E-3));
     }
 
     public double manaFraction() {
-        if (isTranscendent()) {
+        if (hasInfiniteMana()) {
             return 1.0;
         }
         return maxMana <= 0.0 ? 0.0 : Math.min(1.0, mana / maxMana);
@@ -660,14 +687,14 @@ public final class ManaData {
         }
     }
 
-    /** Applies a new capacity and clamps mana into it. Circle 10 always reads as full. */
+    /** Applies a new capacity and clamps mana into it. Infinite mana always reads as full. */
     public void setMaxMana(double value) {
         double capacity = Double.isFinite(value) ? Math.max(1.0, value) : coreCapacity;
         if (capacity != maxMana) {
             maxMana = capacity;
             dirty = true;
         }
-        if (isTranscendent()) {
+        if (hasInfiniteMana()) {
             setMana(maxMana);
         } else if (mana > maxMana) {
             setMana(maxMana);
@@ -815,10 +842,10 @@ public final class ManaData {
 
     /**
      * Removes mana spent through another mod's spell. Returns what was actually removed.
-     * A transcendent core never pays.
+     * Infinite mana never pays.
      */
     public double spendMana(double amount) {
-        if (isTranscendent() || amount <= 0.0 || !Double.isFinite(amount)) {
+        if (hasInfiniteMana() || amount <= 0.0 || !Double.isFinite(amount)) {
             return 0.0;
         }
         double before = mana;

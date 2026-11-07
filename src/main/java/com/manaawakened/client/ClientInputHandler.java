@@ -111,7 +111,7 @@ public final class ClientInputHandler {
                 castRepeat = REPEAT_TICKS;
                 SpellRecipe selected = memory.selectedSpell();
                 if (selected != null && memory.cooldown(selected.id()) <= 0
-                        && (data.isTranscendent() || data.mana() >= SpellCaster.costFor(player, data, selected))) {
+                        && (data.hasInfiniteMana() || data.mana() >= SpellCaster.costFor(player, data, selected))) {
                     PacketDistributor.sendToServer(TargetPrefs.castRequest(memory));
                 }
             }

@@ -209,7 +209,7 @@ public final class TrainingGameTests {
                 sent.fractureTicks(), sent.meditating(), sent.meditationTicks(), sent.seatedUntilRoom(), sent.charging(), sent.chargeTicks(), sent.chargeGoalTicks(),
                 sent.ritualTicks(), sent.ritualGoalTicks(), sent.threshold(), -1, false, sent.ritualSubject(), 0, 1.0F, sent.ceiling(), sent.trainingRate(),
                 sent.growthTier(), sent.growthRefinement(), sent.growthPassive(), sent.growthPurity(), sent.growthFracture(), sent.fullness(),
-                sent.perfectClears(), sent.legacySecondPicks());
+                sent.perfectClears(), sent.legacySecondPicks(), sent.infiniteMana());
         ManaData older = new ManaData();
         future.applyTo(older);
         helper.assertTrue(older.refinementMask() == (1 << Refinement.VALUES.length) - 1, "unknown bits must be masked off: " + older.refinementMask());

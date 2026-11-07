@@ -28,7 +28,7 @@ import net.neoforged.neoforge.common.NeoForge;
  * Ars Nouveau. Its {@code ManaCap} mirrors the core: max mana and regeneration come from the
  * calc events (regen is 0), spends are read back every tick as the difference from the last mirrored
  * value and cost the core that difference times the cost multiplier ({@link ExternalMagic}), and a transcendent
- * core makes every spell free. The cost Ars checks before a cast ({@link SpellCostCalcEvent.Pre}) is scaled the same
+ * core makes every spell free while infinite mana is on. The cost Ars checks before a cast ({@link SpellCostCalcEvent.Pre}) is scaled the same
  * way, so Ars refuses a spell the core cannot pay, and its spell damage ({@link SpellDamageEvent.Pre}) gets the
  * external damage multiplier of the caster's Circle and purity. Only loaded when {@code ars_nouveau} is present.
  *
@@ -155,7 +155,7 @@ public final class ArsNouveauAdapter implements MagicAdapter {
         public void onSpellCheck(SpellCostCalcEvent.Pre event) {
             if (event.context != null && event.context.getUnwrappedCaster() instanceof Player player && enabled()) {
                 ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
-                if (!data.isTranscendent()) {
+                if (!data.hasInfiniteMana()) {
                     double cost = event.currentCost * ExternalMagic.costMultiplier(data, MOD_ID);
                     event.currentCost = checkedCost(data.mana(), cost);
                     if (player instanceof ServerPlayer server && !ExternalMagic.affords(data.mana(), cost)) {
@@ -184,7 +184,7 @@ public final class ArsNouveauAdapter implements MagicAdapter {
         @SubscribeEvent
         public void onSpellCost(SpellCostCalcEvent.Post event) {
             if (event.context != null && event.context.getUnwrappedCaster() instanceof ServerPlayer player && enabled()
-                    && player.getData(AttachmentRegistries.MANA_DATA).isTranscendent()) {
+                    && player.getData(AttachmentRegistries.MANA_DATA).hasInfiniteMana()) {
                 event.currentCost = 0;
             }
         }

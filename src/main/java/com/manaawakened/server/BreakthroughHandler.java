@@ -157,7 +157,7 @@ public final class BreakthroughHandler {
         data.recordLeaving(data.circle(), CultivationRules.leavingFullness(data), perfect);
         data.setCircle(target);
         data.setThreshold(threshold);
-        // The trained core is multiplied; mana carries over into it, and the Circle 10 singularity is always full.
+        // The trained core is multiplied; mana carries over into it, and the Circle 10 singularity is always full while infinite mana is on.
         data.setCoreCapacity(multiplied);
         CultivationRules.normalizeCapacity(data);
         data.setBodyHeat(0.0);

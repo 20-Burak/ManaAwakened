@@ -345,7 +345,7 @@ public final class PurityGameTests {
 
         // saved again: the current format (8 since 1.0.1), no purity of its own, the kept pick stays and nothing is dropped twice
         CompoundTag saved = (CompoundTag) ManaData.SERIALIZER.write(loaded, helper.getLevel().registryAccess());
-        helper.assertTrue(saved.getInt("version") == ManaData.DATA_VERSION && ManaData.DATA_VERSION == 8, "format 8: " + saved.getInt("version"));
+        helper.assertTrue(saved.getInt("version") == ManaData.DATA_VERSION && ManaData.DATA_VERSION >= 8, "format 8 or later: " + saved.getInt("version"));
         helper.assertTrue(!saved.contains("purity") && saved.getInt("legacy_second_picks") == 0b10, "purity is not stored: " + saved);
         ManaData again = ManaData.SERIALIZER.read(null, saved, helper.getLevel().registryAccess());
         helper.assertTrue(near(again.purity(), 23.0) && again.perfectClears() == 0b01 && again.legacySecondPicks() == 0b10, "round trip: " + again.purity());

@@ -52,7 +52,7 @@ public final class SpellCaster {
 
     /** The mana a cast of {@code recipe} costs this player right now, passives included. */
     public static double costFor(net.minecraft.world.entity.player.Player player, ManaData data, SpellRecipe recipe) {
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return 0.0;
         }
         return SpellStats.of(recipe, data.circle()).cost() * PassiveHandler.spellCostMultiplier(player);

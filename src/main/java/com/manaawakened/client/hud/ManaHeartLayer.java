@@ -165,6 +165,7 @@ public final class ManaHeartLayer {
         float cx = CENTER;
         float cy = CENTER;
         boolean transcendent = data.isTranscendent();
+        boolean infinite = data.hasInfiniteMana();
         float heat = (float) (data.bodyHeat() / ManaData.MAX_PERCENT);
 
         BufferBuilder buffer = HudGeometry.begin(graphics);
@@ -189,7 +190,7 @@ public final class ManaHeartLayer {
 
         // --- thermal arc ---
         HudGeometry.arc(buffer, pose, cx, cy, HEAT_INNER, HEAT_OUTER, HEAT_START, HEAT_SWEEP, TRACK, TRACK_EDGE);
-        if (heat > 0.0F && !transcendent) {
+        if (heat > 0.0F && !infinite) {
             int heatColor = FastColor.ARGB32.lerp(heat, HEAT_COOL, HEAT_HOT);
             HudGeometry.arc(buffer, pose, cx, cy, HEAT_INNER, HEAT_OUTER, HEAT_START, HEAT_SWEEP * heat, heatColor, HudGeometry.withAlpha(heatColor, 0.75F));
             if (heat > 0.85F) {
@@ -220,22 +221,26 @@ public final class ManaHeartLayer {
         // --- mana gauge ---
         HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, 0.0F, 360.0F, TRACK, TRACK_EDGE);
         float fraction = (float) data.manaFraction();
-        if (transcendent && calm) {
-            // a solid arc in the current hue, with a faint lighter sheen going round it
-            HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, 0.0F, 360.0F, CalmHue.rgb(time, 0.75F, 0.8F), CalmHue.rgb(time, 0.55F, 1.0F));
-            int sheen = HudGeometry.withAlpha(CalmHue.rgb(time, 0.15F, 1.0F), 0.35F);
-            HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, (time * 1.5F) % 360.0F, SHEEN_SWEEP, sheen, sheen);
-        } else if (transcendent) {
+        // Circle 10's colours fill only the mana it holds (1.0.4: with infinite mana off it is a real pool; with it on, always all)
+        if (transcendent && calm && fraction > 0.0F) {
+            // a solid arc in the current hue, with a faint lighter sheen going round it once it is full
+            HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, 0.0F, 360.0F * fraction, CalmHue.rgb(time, 0.75F, 0.8F), CalmHue.rgb(time, 0.55F, 1.0F));
+            if (fraction >= 1.0F) {
+                int sheen = HudGeometry.withAlpha(CalmHue.rgb(time, 0.15F, 1.0F), 0.35F);
+                HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, (time * 1.5F) % 360.0F, SHEEN_SWEEP, sheen, sheen);
+            }
+        } else if (transcendent && fraction > 0.0F) {
             int steps = 24;
+            float sweep = 360.0F * fraction / steps;
             for (int i = 0; i < steps; i++) {
                 int color = prismatic(time, i / (float) steps, 0.6F);
-                HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, i * 360.0F / steps, 360.0F / steps + 0.5F, color, color);
+                HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, i * sweep, sweep + 0.5F, color, color);
             }
-        } else if (fraction > 0.0F) {
+        } else if (!transcendent && fraction > 0.0F) {
             int tip = data.isMeditating() ? pulse(MANA_OUTER, 0xFFFFFFFF, time, 0.7F) : MANA_OUTER;
             HudGeometry.arc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, 0.0F, 360.0F * fraction, MANA_INNER, tip);
         }
-        if (!transcendent) {
+        if (!infinite) {
             SpendFeedbackHud.ghostArc(buffer, pose, cx, cy, GAUGE_INNER, GAUGE_OUTER, fraction, now);
         }
 
@@ -283,13 +288,13 @@ public final class ManaHeartLayer {
             switch (ROW_KIND[i]) {
                 case IDENTITY -> {
                     int end = graphics.drawString(font, ManaHudText.title(variant).text, x, y, circleColor(data.circle(), time), true);
-                    if (!data.isTranscendent()) {
+                    if (!data.hasInfiniteMana()) {
                         SpendFeedbackHud.number(graphics, font, end + 4, y, right, y, now);
                     }
                 }
                 case AMOUNT -> {
                     int end = graphics.drawString(font, ManaHudText.AMOUNT.text, x, y, TEXT_MANA, true);
-                    if (!data.isTranscendent()) {
+                    if (!data.hasInfiniteMana()) {
                         SpendFeedbackHud.drain(graphics, font, end + 4, y, now);
                     }
                 }

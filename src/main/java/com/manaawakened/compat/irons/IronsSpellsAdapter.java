@@ -44,7 +44,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  *       those units, every payment is one the core can make in full, and a channel stops when the core cannot pay its next ticks
  *       (until 1.0.1 it ran on while Iron's saw the unscaled core, and the core paid what it had);</li>
  *   <li>{@code spell_power} gets the external damage multiplier of the caster's Circle and purity (a transient modifier);</li>
- *   <li>a transcendent core sets every spell's cost to 0.</li>
+ *   <li>a transcendent core sets every spell's cost to 0 while infinite mana is on.</li>
  * </ul>
  * Iron's own spell wheel, tooltips and inscription table compute a spell's cost on the client from the spell itself, so they keep
  * showing the unscaled cost. This class is only loaded when {@code irons_spellbooks} is present.
@@ -178,7 +178,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
                 return;
             }
             ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
-            if (data.isTranscendent()) {
+            if (data.hasInfiniteMana()) {
                 return;
             }
             AbstractSpell spell = SpellRegistry.getSpell(event.getSpellId());
@@ -196,7 +196,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
         }
     }
 
-    /** Marks the tick of a cast, and makes every cast of a transcendent core free. */
+    /** Marks the tick of a cast, and makes every cast of a transcendent core free while infinite mana is on. */
     private final class CastListener {
         @SubscribeEvent
         public void onSpellCast(SpellOnCastEvent event) {
@@ -204,7 +204,7 @@ public final class IronsSpellsAdapter implements MagicAdapter {
                 return;
             }
             lastCast.computeIfAbsent(player.getUUID(), id -> new long[1])[0] = player.server.getTickCount();
-            if (player.getData(AttachmentRegistries.MANA_DATA).isTranscendent()) {
+            if (player.getData(AttachmentRegistries.MANA_DATA).hasInfiniteMana()) {
                 event.setManaCost(0);
             }
         }

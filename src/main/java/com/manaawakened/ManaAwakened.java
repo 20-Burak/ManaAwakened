@@ -2,18 +2,22 @@ package com.manaawakened;
 
 import com.manaawakened.compat.MagicAdapters;
 import com.manaawakened.config.ManaConfig;
+import com.manaawakened.core.InfiniteMana;
 import com.manaawakened.event.CultivationEvents;
 import com.manaawakened.network.ModNetwork;
 import com.manaawakened.registry.ModRegistries;
 import com.mojang.logging.LogUtils;
 import java.util.Locale;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 /**
@@ -28,12 +32,22 @@ public final class ManaAwakened {
     public ManaAwakened(IEventBus modBus, ModContainer container) {
         ModRegistries.register(modBus);
         modBus.addListener(ModNetwork::onRegisterPayloads);
-        modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(MagicAdapters::init));
+        modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
+            MagicAdapters.init();
+            InfiniteMana.register();
+        }));
         modBus.addListener((net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) -> event.registerBlockEntity(
                 net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK, ModRegistries.MANA_CONDENSER_BE.get(), (be, side) -> be.storage));
 
         container.registerConfig(ModConfig.Type.SERVER, ManaConfig.SERVER_SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ManaConfig.CLIENT_SPEC);
+        modBus.addListener((ModConfigEvent.Reloading event) -> {
+            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            if (event.getConfig().getSpec() == ManaConfig.SERVER_SPEC && server != null) {
+                // the file watcher reloads on its own thread
+                server.execute(() -> InfiniteMana.refreshAll(server));
+            }
+        });
 
         CultivationEvents.register(NeoForge.EVENT_BUS);
     }

@@ -13,9 +13,9 @@ public final class HudNumbers {
     private HudNumbers() {
     }
 
-    /** "4,984 / 5,000", "1.00T / 1.00T", or "∞" at Circle 10. */
+    /** "4,984 / 5,000", "1.00T / 1.00T", or "∞" for infinite mana. */
     public static Component amount(ManaData data) {
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return Component.literal("∞");
         }
         return Component.empty().append(CompactNumber.floor(data.mana())).append(" / ").append(CompactNumber.floor(data.maxMana()));

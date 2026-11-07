@@ -587,9 +587,9 @@ public final class ManaCommands {
         return String.format(Locale.ROOT, "%,d", (long) value);
     }
 
-    /** The mana line of {@code /mana}: "1,000,000,000,000 / 1,000,000,000,000 (100%)", or "∞" at Circle 10. */
+    /** The mana line of {@code /mana}: "1,000,000,000,000 / 1,000,000,000,000 (100%)", or "∞" for infinite mana. */
     public static String manaText(ManaData data) {
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return "∞";
         }
         return String.format(Locale.ROOT, "%,d / %,d (%.0f%%)", (long) Math.floor(data.mana()), (long) Math.floor(data.maxMana()),

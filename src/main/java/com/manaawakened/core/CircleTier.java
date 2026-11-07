@@ -6,7 +6,7 @@ import net.minecraft.network.chat.MutableComponent;
 
 /**
  * The ten Circles: their numbering, names and colours. How big a core is in each Circle, how fast it trains and when it
- * may break through is the core-training model, {@link CoreModel}. Circle 10 is infinite.
+ * may break through is the core-training model, {@link CoreModel}. Circle 10 is infinite while infinite mana is on (see {@link InfiniteMana}).
  */
 public final class CircleTier {
     public static final int MORTAL = 0;

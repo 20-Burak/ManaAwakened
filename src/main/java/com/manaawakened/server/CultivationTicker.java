@@ -34,7 +34,7 @@ public final class CultivationTicker {
         // (compression, a backlash, a command) always vents instead of quietly cooling to 99.9%.
         tickOverheat(player, data);
 
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             tickTranscendent(player, data);
         } else {
             tickAbsorption(data);
@@ -75,7 +75,7 @@ public final class CultivationTicker {
         }
     }
 
-    /** Circle 10: an absolute singularity. Mana never drains and the body can no longer overheat. */
+    /** Circle 10 with infinite mana: an absolute singularity. Mana never drains and the body can no longer overheat. */
     private static void tickTranscendent(ServerPlayer player, ManaData data) {
         data.setMana(data.maxMana());
         data.setBodyHeat(0.0);
@@ -134,7 +134,7 @@ public final class CultivationTicker {
     }
 
     private static void tickOverheat(ServerPlayer player, ManaData data) {
-        if (data.isTranscendent() || data.bodyHeat() < ManaData.MAX_PERCENT) {
+        if (data.hasInfiniteMana() || data.bodyHeat() < ManaData.MAX_PERCENT) {
             return;
         }
         data.setBodyHeat(ManaConfig.SERVER.overheatVentTo.get());

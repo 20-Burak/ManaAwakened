@@ -302,7 +302,7 @@ public final class ProgressionGameTests {
 
         // written again they are format 8 with the threshold, and read back the same
         CompoundTag saved = (CompoundTag) ManaData.SERIALIZER.write(owner, helper.getLevel().registryAccess());
-        helper.assertTrue(saved.getInt("version") == 8 && saved.getDouble("threshold") == 5_000.0, "format 8 with the threshold: " + saved);
+        helper.assertTrue(saved.getInt("version") == ManaData.DATA_VERSION && saved.getDouble("threshold") == 5_000.0, "format 8 or later with the threshold: " + saved);
         helper.assertTrue(ManaData.SERIALIZER.read(null, saved, helper.getLevel().registryAccess()).threshold() == 5_000.0, "round trip");
         helper.succeed();
     }

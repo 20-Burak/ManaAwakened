@@ -45,7 +45,7 @@ public final class SelectedSpellLayer {
         int cooldown = book.cooldown(spell.id());
         float fraction = cooldown > 0 ? Math.min(1.0F, cooldown / (float) Math.max(1, stats.cooldownTicks())) : 0.0F;
         double cost = SpellCaster.costFor(player, data, spell);
-        boolean affordable = data.isTranscendent() || data.mana() >= cost;
+        boolean affordable = data.hasInfiniteMana() || data.mana() >= cost;
 
         // the mana HUD keeps clear of this rectangle (HudTextLayout.slotRect), so both use the same margins
         int x = graphics.guiWidth() - SpellSlotRenderer.SIZE - HudTextLayout.SLOT_RIGHT;
@@ -59,7 +59,7 @@ public final class SelectedSpellLayer {
                 y + SpellSlotRenderer.SIZE + 3, 0xFFB8BCD0);
         String name = spell.name();
         graphics.drawString(font, name, x - 4 - font.width(name), y + 2, affordable ? 0xFFFFFFFF : 0xFF9AA0B8);
-        String costText = data.isTranscendent() ? "0" : CompactNumber.ceil(cost).getString();
+        String costText = data.hasInfiniteMana() ? "0" : CompactNumber.ceil(cost).getString();
         graphics.drawString(font, costText, x - 4 - font.width(costText), y + 13, affordable ? 0xFF7FD0FF : 0xFFFF7F7F);
     }
 }

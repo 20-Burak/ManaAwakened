@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * The core-training model travels as {@code threshold} (E, personal since 1.0.1), {@code ceiling} (Cap), {@code trainingRate}
  * (core per second now), the parts of the growth multiplier, the fullness of every Circle left and the perfect clears. Purity (3.3.0,
  * 0..150, derived on the server) travels with the points of the refinements; the second passive picks kept from dropped 3.2.0 perfect
- * clears travel as {@code legacySecondPicks}.
+ * clears travel as {@code legacySecondPicks}. {@code infiniteMana} is the world's answer whether Circle 10 has infinite mana (1.0.4).
  */
 public record SyncManaPayload(
         int circle,
@@ -53,7 +53,8 @@ public record SyncManaPayload(
         float growthFracture,
         List<Float> fullness,
         int perfectClears,
-        int legacySecondPicks
+        int legacySecondPicks,
+        boolean infiniteMana
 ) implements CustomPacketPayload {
     public static final Type<SyncManaPayload> TYPE = new Type<>(ManaAwakened.id("sync_mana"));
     public static final StreamCodec<FriendlyByteBuf, SyncManaPayload> STREAM_CODEC =
@@ -96,7 +97,8 @@ public record SyncManaPayload(
                 (float) data.growthFracture(),
                 List.copyOf(history),
                 data.perfectClears(),
-                data.legacySecondPicks());
+                data.legacySecondPicks(),
+                data.infiniteManaAllowed());
     }
 
     private static SyncManaPayload read(FriendlyByteBuf buf) {
@@ -136,10 +138,11 @@ public record SyncManaPayload(
         }
         int perfectClears = buf.readVarInt();
         int legacySecondPicks = buf.readVarInt();
+        boolean infiniteMana = buf.readBoolean();
         return new SyncManaPayload(circle, mana, maxMana, purity, refinementPurity, bodyHeat, vesselTier, fractureTicks, meditating, meditationTicks, seatedUntilRoom, charging,
                 chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, threshold, refinements, training, ritualSubject, circleTier,
                 ambient, ceiling, trainingRate, growthTier, growthRefinement, growthPassive, growthPurity, growthFracture, List.copyOf(fullness),
-                perfectClears, legacySecondPicks);
+                perfectClears, legacySecondPicks, infiniteMana);
     }
 
     private void write(FriendlyByteBuf buf) {
@@ -179,6 +182,7 @@ public record SyncManaPayload(
         }
         buf.writeVarInt(perfectClears);
         buf.writeVarInt(legacySecondPicks);
+        buf.writeBoolean(infiniteMana);
     }
 
     public void applyTo(ManaData data) {
@@ -186,6 +190,7 @@ public record SyncManaPayload(
                 meditating, meditationTicks, seatedUntilRoom, charging, chargeTicks, chargeGoalTicks, ritualTicks, ritualGoalTicks, threshold, refinements,
                 training, ritualSubject, circleTier, ambient, ceiling, trainingRate, growthTier, growthRefinement, growthPassive, growthPurity,
                 growthFracture, fullness, perfectClears, legacySecondPicks);
+        data.setInfiniteMana(infiniteMana);
     }
 
     @Override

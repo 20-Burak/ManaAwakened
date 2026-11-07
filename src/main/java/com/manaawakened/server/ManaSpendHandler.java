@@ -9,13 +9,13 @@ public final class ManaSpendHandler {
     private ManaSpendHandler() {
     }
 
-    /** @return the mana actually taken (0 for a transcendent core); body heat follows that amount, not the one asked for */
+    /** @return the mana actually taken (0 for infinite mana); body heat follows that amount, not the one asked for */
     public static double spend(ServerPlayer player, ManaData data, double amount) {
         if (amount <= 0.0 || !Double.isFinite(amount)) {
             return 0.0;
         }
         double taken = data.spendMana(amount);
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return 0.0;
         }
         if (data.maxMana() > 0.0) {
@@ -27,7 +27,7 @@ public final class ManaSpendHandler {
 
     /** Mana restored by another mod (potions, rituals) flows into the core. */
     public static void gain(ServerPlayer player, ManaData data, double amount) {
-        if (amount <= 0.0 || !Double.isFinite(amount) || data.isTranscendent()) {
+        if (amount <= 0.0 || !Double.isFinite(amount) || data.hasInfiniteMana()) {
             return;
         }
         data.addMana(amount);

@@ -3,6 +3,7 @@ package com.manaawakened.event;
 import com.manaawakened.command.ManaCommands;
 import com.manaawakened.compat.MagicAdapters;
 import com.manaawakened.config.ManaConfig;
+import com.manaawakened.core.InfiniteMana;
 import com.manaawakened.core.ManaData;
 import com.manaawakened.network.ModNetwork;
 import com.manaawakened.registry.AttachmentRegistries;
@@ -100,6 +101,7 @@ public final class CultivationEvents {
             Milestones.circleReached(player, data);
             Milestones.vesselReached(player, data);
             Milestones.refined(player, data);
+            InfiniteMana.refresh(player);
             ModNetwork.syncNow(player, data);
             ModNetwork.syncSpells(player, player.getData(AttachmentRegistries.SPELL_BOOK));
             ModNetwork.syncPassives(player, player.getData(AttachmentRegistries.PASSIVES));
@@ -176,6 +178,7 @@ public final class CultivationEvents {
             if (data.isMeditating()) {
                 MeditationHandler.stop(player, data, MeditationHandler.Break.TRAVEL.message());
             }
+            InfiniteMana.refresh(player);
             ModNetwork.syncNow(player, data);
             ModNetwork.syncSpells(player, player.getData(AttachmentRegistries.SPELL_BOOK));
             ModNetwork.syncPassives(player, player.getData(AttachmentRegistries.PASSIVES));

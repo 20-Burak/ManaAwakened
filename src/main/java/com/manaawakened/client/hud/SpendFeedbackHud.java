@@ -37,7 +37,7 @@ public final class SpendFeedbackHud {
     private SpendFeedbackHud() {
     }
 
-    /** A spend reported by the server; a transcendent core never pays, so nothing is shown for it. */
+    /** A spend reported by the server; infinite mana never pays, so nothing is shown for it. */
     public static void onSpent(ManaSpentPayload payload) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
@@ -45,7 +45,7 @@ public final class SpendFeedbackHud {
             return;
         }
         ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return;
         }
         long now = Util.getMillis();

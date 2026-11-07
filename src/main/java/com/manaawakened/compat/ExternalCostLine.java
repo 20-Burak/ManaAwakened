@@ -93,7 +93,7 @@ public final class ExternalCostLine {
         if (mods.isEmpty()) {
             return null;
         }
-        return line(data.maxMana(), data.isTranscendent(), ManaConfig.SERVER.externalReferencePool.get(), ManaConfig.SERVER.externalCostScale.get(), mods,
+        return line(data.maxMana(), data.hasInfiniteMana(), ManaConfig.SERVER.externalReferencePool.get(), ManaConfig.SERVER.externalCostScale.get(), mods,
                 ExternalMagic::alpha);
     }
 }

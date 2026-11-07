@@ -165,7 +165,7 @@ public final class MagicAdapters {
      * popup). It never pays a part. Each adapter shows its mod only what the core can pay ({@link #mirrorUnits}) or refuses the cast
      * in the mod's own pre-cast hook, so a mod can only spend what the core then pays in full.
      *
-     * @return the mana the core actually paid (0 when refused, and for a transcendent core)
+     * @return the mana the core actually paid (0 when refused, and for infinite mana)
      */
     public static double reportSpent(ServerPlayer player, ManaData data, String modId, double amount) {
         return reportSpent(player, data, modId, amount, false);
@@ -177,7 +177,7 @@ public final class MagicAdapters {
      */
     public static double reportSpent(ServerPlayer player, ManaData data, String modId, double amount, boolean continuous) {
         double cost = amount * ExternalMagic.costMultiplier(data, modId);
-        if (!data.isTranscendent() && !ExternalMagic.affords(data.mana(), cost)) {
+        if (!data.hasInfiniteMana() && !ExternalMagic.affords(data.mana(), cost)) {
             return 0.0;
         }
         double paid = ManaSpendHandler.spend(player, data, cost);
@@ -192,18 +192,18 @@ public final class MagicAdapters {
     /**
      * How much of its own mana {@code modId} is shown (1.0.2): the whole units the core can pay at the mod's cost multiplier
      * ({@link ExternalMagic#affordableUnits}), so the mod's own "enough mana?" check, made in its own units, agrees with the core.
-     * A transcendent core pays nothing, so its mods see the core as it is.
+     * Infinite mana pays nothing, so its mods see the core as it is.
      */
     public static long mirrorUnits(ManaData data, String modId) {
-        if (data.isTranscendent()) {
+        if (data.hasInfiniteMana()) {
             return (long) Math.max(0.0, Math.floor(data.mana()));
         }
         return ExternalMagic.affordableUnits(data.mana(), ExternalMagic.costMultiplier(data, modId));
     }
 
-    /** The scaled cost of {@code amount} of {@code modId}'s mana for this core: 0 for a transcendent core. */
+    /** The scaled cost of {@code amount} of {@code modId}'s mana for this core: 0 for infinite mana. */
     public static double scaledCost(ManaData data, String modId, double amount) {
-        return data.isTranscendent() ? 0.0 : amount * ExternalMagic.costMultiplier(data, modId);
+        return data.hasInfiniteMana() ? 0.0 : amount * ExternalMagic.costMultiplier(data, modId);
     }
 
     /** The red "not enough mana in your core: this spell costs N" line over the hotbar, for a refused external cast. */

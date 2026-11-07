@@ -196,7 +196,7 @@ public final class PassiveHandler {
         if (spec == null || data.manaFraction() < passive.v1()) {
             return;
         }
-        if (passive.v2() > 0.0 && !data.isTranscendent()) {
+        if (passive.v2() > 0.0 && !data.hasInfiniteMana()) {
             if (data.mana() < passive.v2()) {
                 return;
             }
@@ -214,7 +214,7 @@ public final class PassiveHandler {
             if (!hungry && food.getSaturationLevel() >= 20.0F) {
                 return;
             }
-            if (!data.isTranscendent()) {
+            if (!data.hasInfiniteMana()) {
                 if (data.mana() < passive.v1()) {
                     return;
                 }
@@ -344,7 +344,7 @@ public final class PassiveHandler {
             return;
         }
         double upkeep = flight.v2() / 20.0;
-        boolean affordable = data.isTranscendent() || upkeep <= 0.0 || data.mana() >= upkeep;
+        boolean affordable = data.hasInfiniteMana() || upkeep <= 0.0 || data.mana() >= upkeep;
         boolean granted = flightAttribute.hasModifier(FLIGHT_MODIFIER);
         if (affordable && !granted) {
             flightAttribute.addTransientModifier(new AttributeModifier(FLIGHT_MODIFIER, 1.0, AttributeModifier.Operation.ADD_VALUE));
@@ -355,7 +355,7 @@ public final class PassiveHandler {
             revokeFlight(player, flightAttribute, passives);
             player.displayClientMessage(Component.translatable("mana_awakened.passive.flight_empty").withStyle(ChatFormatting.RED), true);
         }
-        if (abilities.flying && upkeep > 0.0 && !data.isTranscendent()) {
+        if (abilities.flying && upkeep > 0.0 && !data.hasInfiniteMana()) {
             SpendFeedback.recordContinuous(player, ManaSpentPayload.OTHER, data.spendMana(upkeep));
             data.markDirty();
         }
@@ -437,12 +437,12 @@ public final class PassiveHandler {
     /** The mana barrier: takes a share of the damage and pays for it with mana. @return damage absorbed */
     private static float barrier(ServerPlayer player, ManaData data, Passive passive, float amount) {
         double wanted = amount * passive.v2();
-        double affordable = data.isTranscendent() ? wanted : data.mana() / Math.max(1.0E-6, passive.v1());
+        double affordable = data.hasInfiniteMana() ? wanted : data.mana() / Math.max(1.0E-6, passive.v1());
         float absorbed = (float) Math.min(wanted, affordable);
         if (absorbed <= 0.0F) {
             return 0.0F;
         }
-        if (!data.isTranscendent()) {
+        if (!data.hasInfiniteMana()) {
             SpendFeedback.record(player, ManaSpentPayload.OTHER, data.spendMana(absorbed * passive.v1()));
             data.markDirty();
         }
@@ -457,10 +457,10 @@ public final class PassiveHandler {
             return false;
         }
         double cost = data.maxMana() * 0.1;
-        if (!data.isTranscendent() && data.mana() < cost) {
+        if (!data.hasInfiniteMana() && data.mana() < cost) {
             return false;
         }
-        if (!data.isTranscendent()) {
+        if (!data.hasInfiniteMana()) {
             SpendFeedback.record(player, ManaSpentPayload.OTHER, data.spendMana(cost));
             data.markDirty();
         }

@@ -60,7 +60,7 @@ Generated files:
 .\gradlew.bat runGameTestServer
 ```
 
-boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (360 at 1.0.3), then exits; the log ends with `All 360 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
+boots a headless dedicated server and runs every game test in `com.manaawakened.gametest` (367 at 1.0.4), then exits; the log ends with `All 367 required tests passed :)`. Game tests are only registered when `neoforge.enabledGameTestNamespaces` names the mod (the dev runs set it), so they never run in a normal game, and the published jar does not contain them.
 
 Every release is tested PLAIN once and WITH the magic mods for each build set:
 - **PLAIN**: only Mana Awakened, Minecraft, NeoForge and Player Animator on the runtime classpath. The log says `No supported magic mods found; Mana Awakened runs with its own mana only.`
@@ -101,7 +101,7 @@ The maintainer's verification tools live **outside** the repository, in a siblin
 
 ## Save format
 
-Player data is the attachment `mana_awakened:mana_data` (with `mana_awakened:spell_book` and `mana_awakened:passives`) inside each player's `.dat`. Each field is read on its own: an unreadable value falls back to its default and an out-of-range value is clamped. The migrations of the internal versions (data formats 5, 6 and 7: the core-training model, its fullness fix and static purity; spell book format 2: targets stored by id) are described in the ROADMAP entries of those versions. Format 8 (1.0.1) stores the personal `threshold`; an older save gets the one its fullness history leads to (E_ref(circle) x the product of (1 + s)), keeps its core and has core and mana clamped to the new cap.
+Player data is the attachment `mana_awakened:mana_data` (with `mana_awakened:spell_book` and `mana_awakened:passives`) inside each player's `.dat`. Each field is read on its own: an unreadable value falls back to its default and an out-of-range value is clamped. The migrations of the internal versions (data formats 5, 6 and 7: the core-training model, its fullness fix and static purity; spell book format 2: targets stored by id) are described in the ROADMAP entries of those versions. Format 8 (1.0.1) stores the personal `threshold`; an older save gets the one its fullness history leads to (E_ref(circle) x the product of (1 + s)), keeps its core and has core and mana clamped to the new cap. Format 9 (1.0.4) stores `infinite_mana`, the world's last answer whether Circle 10 has infinite mana (the gamerule `manaAwakenedInfiniteMana` and `core.allowInfiniteMana`); a save without it reads true, so a Circle 10 core is filled once on its first login into a world where it is off. The gamerule itself lives in `level.dat`.
 
 ## Code map
 
@@ -118,8 +118,8 @@ com.manaawakened
 │   ├─ irons/              IronsSpellsAdapter   (only loaded when irons_spellbooks is present)
 │   ├─ ars/                ArsNouveauAdapter    (only loaded when ars_nouveau is present)
 │   └─ mahou/              MahouTsukaiAdapter   (only loaded when mahoutsukai is present)
-├─ config/ManaConfig       server balance + client HUD config
-├─ core/                   ManaData (attachment + safe codec), CoreModel (the core-training model: personal thresholds, cap, bonus, slowdown), CompactNumber (1.23M / 4.56B, three digits, cut), PurityBuffs, ExternalMagic (what other mods' spells cost the core and how hard they hit), MeditationEase (no game classes), CircleTier, VesselTier, Refinement, Refinements
+├─ config/ManaConfig       server balance (with `core.allowInfiniteMana`) + client HUD config
+├─ core/                   ManaData (attachment + safe codec), InfiniteMana (whether Circle 10 has infinite mana: the server config and the gamerule `manaAwakenedInfiniteMana`), CoreModel (the core-training model: personal thresholds, cap, bonus, slowdown), CompactNumber (1.23M / 4.56B, three digits, cut), PurityBuffs, ExternalMagic (what other mods' spells cost the core and how hard they hit), MeditationEase (no game classes), CircleTier, VesselTier, Refinement, Refinements
 ├─ damage/ModDamageTypes   mana_backlash (true damage via vanilla bypass tags)
 ├─ effect/                 Core Fracture, Hemorrhage (no healing)
 ├─ entity/FloatingDragonHeart  the heart a slain Ender Dragon leaves floating above its exit portal (no gravity, no damage, taken by touch or right-click)

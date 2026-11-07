@@ -21,7 +21,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  *       own: the routine sync carries the mana level.</li>
  * </ul>
  * A player never gets more than one report per tick, and a discrete spend never waits for the continuous interval. Only what was paid
- * is reported: a refused cast pays nothing and a transcendent core pays 0, so neither sends anything. Recording allocates nothing once
+ * is reported: a refused cast pays nothing and a transcendent core pays 0 while infinite mana is on, so neither sends anything. Recording allocates nothing once
  * a player has an entry.
  */
 public final class SpendFeedback {

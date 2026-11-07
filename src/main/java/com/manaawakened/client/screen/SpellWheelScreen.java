@@ -124,7 +124,7 @@ public final class SpellWheelScreen extends Screen {
             SpellStats stats = SpellStats.of(spell, data.circle());
             int cooldown = book.cooldown(spell.id());
             float fraction = cooldown > 0 ? Math.min(1.0F, cooldown / (float) Math.max(1, stats.cooldownTicks())) : 0.0F;
-            boolean affordable = data.isTranscendent() || data.mana() >= SpellCaster.costFor(minecraft.player, data, spell);
+            boolean affordable = data.hasInfiniteMana() || data.mana() >= SpellCaster.costFor(minecraft.player, data, spell);
             SpellSlotRenderer.draw(graphics, x, y, spell.sigil(), spell.id() == book.selected(), i == hovered, fraction, affordable);
         }
 
@@ -146,7 +146,7 @@ public final class SpellWheelScreen extends Screen {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.literal(spell.name()).withStyle(ChatFormatting.WHITE));
         lines.add(spell.sigil().displayName().withStyle(ChatFormatting.DARK_AQUA));
-        long cost = data.isTranscendent() ? 0L : (long) Math.ceil(SpellCaster.costFor(minecraft.player, data, spell));
+        long cost = data.hasInfiniteMana() ? 0L : (long) Math.ceil(SpellCaster.costFor(minecraft.player, data, spell));
         lines.add(Component.translatable("mana_awakened.wheel.cost", com.manaawakened.core.CompactNumber.of(cost)).withStyle(ChatFormatting.AQUA));
         int cooldown = book.cooldown(spell.id());
         if (cooldown > 0) {

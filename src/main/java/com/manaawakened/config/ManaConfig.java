@@ -46,6 +46,7 @@ public final class ManaConfig {
         public final ModConfigSpec.DoubleValue taperFloor;
         public final ModConfigSpec.DoubleValue taperFloorDecay;
         public final ModConfigSpec.DoubleValue perfectClearFraction;
+        public final ModConfigSpec.BooleanValue allowInfiniteMana;
         // meditation
         public final ModConfigSpec.DoubleValue meditationRegenPercent;
         public final ModConfigSpec.DoubleValue meditationCoolingPerSecond;
@@ -210,6 +211,10 @@ public final class ManaConfig {
                     .comment("Leaving a Circle with at least this fullness (the share of the way from its threshold to its cap) is a perfect clear: two passive picks for that Circle.")
                     .translation(key("perfectClearFraction"))
                     .defineInRange("perfectClearFraction", 0.995, 0.5, 1.0);
+            allowInfiniteMana = b
+                    .comment("false turns Circle 10's infinite mana off in every world on this server, whatever the gamerule says.")
+                    .translation(key("allowInfiniteMana"))
+                    .define("allowInfiniteMana", true);
             b.pop();
 
             b.comment("Meditation stance (K key by default)").translation(key("meditation")).push("meditation");

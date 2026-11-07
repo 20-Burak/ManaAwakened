@@ -191,7 +191,7 @@ public final class MahouTsukaiAdapter implements MagicAdapter {
             }
             ManaData data = player.getData(AttachmentRegistries.MANA_DATA);
             IMahou mahou = player.getData(DataAttachments.PLAYER_ATTACHMENTS);
-            if (data.isTranscendent() || mahou == null) {
+            if (data.hasInfiniteMana() || mahou == null) {
                 return;
             }
             int cost = scrollCost(scroll, mahou);
